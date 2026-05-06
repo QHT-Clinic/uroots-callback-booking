@@ -486,17 +486,6 @@
             </p>
           </div>
 
-          <!-- "Already booked" notice (shown when duplicate phone detected) -->
-          <div id="existingBookingNotice"
-            class="hidden mb-5 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-[12px] text-amber-900 leading-relaxed">
-            <div class="flex items-start gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-              <span>
-                This number <span class="font-bold">already has a call scheduled</span>. See details below. Tap <span class="font-bold">Reschedule</span> to change the time.
-              </span>
-            </div>
-          </div>
-
           <!-- Check + Confirmed eyebrow -->
           <div class="text-center">
             <div class="success-pulse mx-auto w-[72px] h-[72px] rounded-full bg-lime-500 ring-8 ring-lime-500/15 flex items-center justify-center text-olive-900 shadow-[0_8px_28px_-8px_rgba(163,192,37,0.55)]">
@@ -1035,18 +1024,15 @@
       successState.classList.remove('hidden');
       successState.classList.add('flex');
 
-      // Toggle "already booked" notice + headline copy
-      const notice   = $('existingBookingNotice');
+      // Toggle headline copy based on mode
       const headline = $('successHeadline');
       const subtext  = $('successSubtext');
       const eyebrow  = $('successEyebrow');
       if (mode === 'existing') {
-        notice.classList.remove('hidden');
         eyebrow.textContent  = 'Already Scheduled';
         headline.textContent = 'You’re Already Booked';
         subtext.textContent  = 'You already have a call scheduled. Tap Reschedule to change the time.';
       } else {
-        notice.classList.add('hidden');
         eyebrow.textContent  = 'Confirmed';
         headline.textContent = 'Call Booked!';
         subtext.textContent  = 'Our hair expert will call you on your registered number.';
