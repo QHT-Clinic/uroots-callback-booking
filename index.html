@@ -293,8 +293,12 @@
 
         <!-- Greeting -->
         <div class="flex items-baseline justify-between mb-4">
-          <h2 id="modalTitle" class="display text-[22px] text-olive-900">
+          <h2 id="modalTitle" class="display text-[22px] text-olive-900 inline-flex items-baseline gap-1.5">
             Hi <span id="greetName" class="italic font-medium">there</span> 👋
+            <button type="button" id="editNameBtn" aria-label="Edit name"
+              class="hidden self-center ml-1 p-1 rounded-full text-olive-900/45 hover:text-olive-900 hover:bg-cream-100 transition focus:outline-none focus:ring-2 focus:ring-olive-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
           </h2>
           <p id="greetPhone" class="hidden items-center gap-1.5 text-xs font-semibold text-olive-900/70">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-olive-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h2.5a1 1 0 01.95.68l1.2 3.6a1 1 0 01-.27 1.05L7.91 9.91a12 12 0 006.18 6.18l1.58-1.47a1 1 0 011.05-.27l3.6 1.2a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.61 21 3 14.39 3 6V5z"/></svg>
@@ -325,13 +329,13 @@
         </div>
 
         <!-- ============ NAME + PHONE ============ -->
-        <div class="space-y-3 mb-7">
-          <div>
+        <div id="nameMobileBlock" class="space-y-3 mb-7">
+          <div id="nameBlock">
             <label for="fullName" class="block text-[10px] font-bold text-olive-700 uppercase tracking-eyebrow mb-1.5">Name</label>
             <input id="fullName" type="text" required placeholder="Enter your full name"
               class="input w-full px-4 py-3 text-[15px] text-olive-900 bg-white border border-cream-200 rounded-xl placeholder-olive-900/30 focus:outline-none"/>
           </div>
-          <div>
+          <div id="phoneBlock">
             <label for="phoneNumber" class="block text-[10px] font-bold text-olive-700 uppercase tracking-eyebrow mb-1.5">Mobile</label>
             <div class="flex">
               <span class="inline-flex items-center gap-1.5 px-3.5 bg-cream-100 border border-r-0 border-cream-200 rounded-l-xl text-[15px] font-semibold text-olive-900">
@@ -616,6 +620,7 @@
       submitLoading.classList.add('hidden');
       submitLoading.classList.remove('inline-flex');
       submitBtn.disabled = false;
+      applyIdentityHiding();
     }
     $('openModalBtn').addEventListener('click', openModal);
     $('closeModalBtn').addEventListener('click', closeModal);
@@ -844,6 +849,38 @@
       await ensureAvailability(state.date);
       renderSlots();
     }
+
+    /** Hide name/phone inputs when we already have both from URL or booking.
+     *  Phone always stays hidden (we never ask for it again).
+     *  Name reveals on demand via the pencil edit button. */
+    function applyIdentityHiding() {
+      const haveName  = !!$('fullName').value.trim();
+      const havePhone = /^[6-9]\d{9}$/.test($('phoneNumber').value.trim());
+
+      if (haveName && havePhone) {
+        $('nameMobileBlock').classList.add('hidden');
+        $('phoneBlock').classList.add('hidden');
+        $('nameBlock').classList.add('hidden');
+        $('editNameBtn').classList.remove('hidden');
+      } else {
+        $('nameMobileBlock').classList.remove('hidden');
+        $('phoneBlock').classList.toggle('hidden', havePhone);
+        $('nameBlock').classList.toggle('hidden', haveName);
+        $('editNameBtn').classList.toggle('hidden', !haveName);
+      }
+    }
+
+    // Edit-pencil → reveal name input inline (phone stays hidden)
+    $('editNameBtn').addEventListener('click', () => {
+      $('nameMobileBlock').classList.remove('hidden');
+      $('nameBlock').classList.remove('hidden');
+      $('fullName').focus();
+      $('fullName').select();
+    });
+    $('fullName').addEventListener('blur', () => {
+      // When user finishes editing name, re-hide block if name is valid
+      if ($('fullName').value.trim().length >= 2) applyIdentityHiding();
+    });
 
     function showMessage(text, type='error') {
       formMsg.textContent = text;
@@ -1103,6 +1140,7 @@
       if (nameP)  $('fullName').value    = nameP;
       if (phoneP) $('phoneNumber').value = phoneP.replace(/\D/g, '').slice(0, 10);
       updateGreeting();
+      applyIdentityHiding();
     }
 
     // Reschedule — go back from success to form
@@ -1114,6 +1152,7 @@
       submitBtn.disabled = false;
       submitLabel.classList.remove('hidden');
       submitLoading.classList.add('hidden');
+      applyIdentityHiding();
       submitLoading.classList.remove('inline-flex');
       // Keep name+phone+language; clear time
       state.time = null;
